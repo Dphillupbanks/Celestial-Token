@@ -1,0 +1,45 @@
+const express = require('express');  
+const app = express();  
+app.get('/', (req, res) => res.send('Bot running')); 
+
+
+const TelegramBot = require('node-telegram-bot-api');
+const token = 8401742093:AAGsLfsHUBdwWoolEEZu2QCOM1Qe01VF9gk
+const bot = new TelegramBot(token, {polling: true});
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, `Greetings' you're in Celestial Deposits.  
+Wallet: 0x612aB0d44E258170D0888779207eF68318D4caC9
+Chima: 100,000  
+Celestial Token: 1,000,000 locked  
+Type /rank for status`);
+});
+
+bot.onText(/\/rank/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, `Captain rank.  
+3 kids fed.  
+Beach cleanup done.  
+Charity pool: 0.5% every spin. Keep winning.`);
+});
+
+console.log('Bot live');
+const express = require('express');  
+const app = express();  
+app.get('/', (req, res) => res.send('Bot running'));  
+
+const TelegramBot = require('node-telegram-bot-api');  
+const Token = 8401742093:AAGsLfsHUBdwWoolEEZu2QCOM1Qe01VF9gk
+const bot = new TelegramBot(token, { polling: true });  
+
+bot.onText(/\/start/, (msg) => {  
+  bot.sendMessage(msg.chat.id, `🚀 Welcome to Celestial Deposits. 0x612aB0d44E258170D0888779207eF68318D4caC9 Balance: 1M Chima locked. Type /rank for stats.`);  
+});  
+
+bot.on('message', (msg) => {  
+  if (msg.text.includes('/rank')) {  
+    bot.sendMessage(msg.chat.id, `Celestial Token: 1000000 CELT locked.\nChima: 50000\nRank: Captain - 3 kids fed.`);  
+  }  
+});  
+
+app.listen(process.env.PORT || 3000, () => console.log('Bot server up'));  

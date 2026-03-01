@@ -1,0 +1,15 @@
+{
+  "name": "celestial-token-bot",
+  "version": "1.0.0",
+  "description": "Celestial Token Telegram bot with Etherscan API integration",
+  "main": "Celestial_Bot.js",
+  "scripts": {
+    "start": "node Celestial_Bot.js",
+    "test": "node --check Celestial_Bot.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
+    "node-telegram-bot-api": "^0.64.0"
+  }
+}

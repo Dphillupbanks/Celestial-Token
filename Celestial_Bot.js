@@ -79,7 +79,7 @@ bot.onText(/\/transactions/, async (msg) => {
     }
 
     const lines = recent.map((tx) =>
-      `${tx.tokenSymbol}: ${(BigInt(tx.value) / BigInt(10 ** Number(tx.tokenDecimal))).toString()} ` +
+      `${tx.tokenSymbol}: ${(BigInt(tx.value) / (BigInt(10) ** BigInt(tx.tokenDecimal))).toString()} ` +
       `from ${tx.from.slice(0, 8)}... (block ${tx.blockNumber})`
     );
 

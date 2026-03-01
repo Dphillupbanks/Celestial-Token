@@ -29,8 +29,19 @@ async function fetchTokenTransactions() {
   const response = await fetch(url);
   const data = await response.json();
 
+  // Etherscan may return status '0' with message 'No transactions found' and an empty result
+  // to indicate a normal "no data" condition. Treat that as an empty list instead of error.
   if (data.status !== '1') {
-    throw new Error(data.message || 'Etherscan API error');
+    const message = (data.message || '').toString();
+    const noTxs =
+      message.toLowerCase() === 'no transactions found' &&
+      (data.result == null || (Array.isArray(data.result) && data.result.length === 0));
+
+    if (noTxs) {
+      return [];
+    }
+
+    throw new Error(message || 'Etherscan API error');
   }
 
   return data.result;

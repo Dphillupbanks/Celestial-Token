@@ -52,7 +52,7 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id,
     `Greetings! You're in Celestial Deposits.\n` +
-    `Wallet: ${WALLET_ADDRESS}\n` +
+    `Wallet: ${0x612aB0d44E258170D0888779207eF68318D4caC9}\n` +
     `Celestial Token: 1,000,000 locked\n` +
     `Type /rank for status\n` +
     `Type /transactions to view recent token transfers`

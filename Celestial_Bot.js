@@ -23,7 +23,7 @@ const ETHERSCAN_API_BASE = 'https://api.etherscan.io/v2/api';
  */
 async function fetchTokenTransactions() {
   const url = `${ETHERSCAN_API_BASE}?chainid=1&module=account&action=tokentx` +
-    `&address=${WALLET_ADDRESS}&startblock=0&endblock=99999999&sort=desc` +
+    `&address=${0x612aB0d44E258170D0888779207eF68318D4caC9}&startblock=0&endblock=99999999&sort=desc` +
     `&apikey=${ETHERSCAN_API_KEY}`;
 
   const response = await fetch(url);

@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 const app = express();
 app.get('/', (req, res) => res.send('Bot running'));
 
+// Load and validate required environment variables
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
@@ -14,6 +15,7 @@ if (!TELEGRAM_BOT_TOKEN) {
 if (!ETHERSCAN_API_KEY) {
   throw new Error('ETHERSCAN_API_KEY environment variable is required');
 }
+
 const WALLET_ADDRESS = '0x612aB0d44E258170D0888779207eF68318D4caC9';
 const ETHERSCAN_API_BASE = 'https://api.etherscan.io/v2/api';
 
@@ -23,7 +25,7 @@ const ETHERSCAN_API_BASE = 'https://api.etherscan.io/v2/api';
  */
 async function fetchTokenTransactions() {
   const url = `${ETHERSCAN_API_BASE}?chainid=1&module=account&action=tokentx` +
-    `&address=${0x612aB0d44E258170D0888779207eF68318D4caC9}&startblock=0&endblock=99999999&sort=desc` +
+    `&address=${WALLET_ADDRESS}&startblock=0&endblock=99999999&sort=desc` +
     `&apikey=${ETHERSCAN_API_KEY}`;
 
   const response = await fetch(url);
@@ -44,27 +46,74 @@ async function fetchTokenTransactions() {
     throw new Error(message || 'Etherscan API error');
   }
 
-  return data.result;
+  return data.result || [];
+}
+
+/**
+ * Format a token transaction for display.
+ * Safely handles missing or invalid token decimal values.
+ * @param {Object} tx - Transaction object from Etherscan
+ * @returns {string} Formatted transaction string
+ */
+function formatTransaction(tx) {
+  try {
+    const tokenSymbol = tx.tokenSymbol || 'UNKNOWN';
+    const fromAddress = tx.from ? tx.from.slice(0, 8) : 'unknown';
+    const blockNumber = tx.blockNumber || 'N/A';
+    
+    // Safely parse token decimals; default to 18 if missing
+    let decimals = 18;
+    if (tx.tokenDecimal != null && tx.tokenDecimal !== '') {
+      decimals = parseInt(tx.tokenDecimal, 10);
+      if (isNaN(decimals)) {
+        decimals = 18;
+      }
+    }
+    
+    // Safely parse value; handle edge cases
+    let value = '0';
+    if (tx.value != null && tx.value !== '') {
+      try {
+        const divisor = BigInt(10) ** BigInt(decimals);
+        value = (BigInt(tx.value) / divisor).toString();
+      } catch (e) {
+        value = tx.value; // Fallback to raw value if BigInt fails
+      }
+    }
+    
+    return `${tokenSymbol}: ${value} from ${fromAddress}... (block ${blockNumber})`;
+  } catch (err) {
+    return `Error formatting transaction: ${err.message}`;
+  }
 }
 
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
 
+/**
+ * /start command - Display bot welcome message and wallet info
+ */
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id,
     `Greetings! You're in Celestial Deposits.\n` +
-    `Wallet: ${0x612aB0d44E258170D0888779207eF68318D4caC9}\n` +
+    `Wallet: ${WALLET_ADDRESS}\n` +
     `Celestial Token: 1,000,000 locked\n` +
     `Type /rank for status\n` +
     `Type /transactions to view recent token transfers`
   );
 });
 
+/**
+ * /rank command - Display user rank and charity info
+ */
 bot.onText(/\/rank/, (msg) => {
   bot.sendMessage(msg.chat.id,
     `Captain rank.\n3 kids fed.\nBeach cleanup done.\nCharity pool: 0.5% every spin. Keep winning.`
   );
 });
 
+/**
+ * /transactions command - Fetch and display recent token transactions
+ */
 bot.onText(/\/transactions/, async (msg) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, 'Fetching recent token transactions...');
@@ -78,15 +127,17 @@ bot.onText(/\/transactions/, async (msg) => {
       return;
     }
 
-    const lines = recent.map((tx) =>
-      `${tx.tokenSymbol}: ${(BigInt(tx.value) / (BigInt(10) ** BigInt(tx.tokenDecimal))).toString()} ` +
-      `from ${tx.from.slice(0, 8)}... (block ${tx.blockNumber})`
-    );
-
+    const lines = recent.map(formatTransaction);
     bot.sendMessage(chatId, `Recent transactions:\n${lines.join('\n')}`);
   } catch (err) {
+    console.error('Error fetching transactions:', err);
     bot.sendMessage(chatId, `Error fetching transactions: ${err.message}`);
   }
+});
+
+// Error handler for bot polling
+bot.on('polling_error', (error) => {
+  console.error('Polling error:', error.code, error.message);
 });
 
 app.listen(process.env.PORT || 3000, () => console.log('Bot server up'));

@@ -1,2 +1,3 @@
 // Deprecated: see Celestial_Bot.js for the updated implementation.
 // Bot token must be set via the TELEGRAM_BOT_TOKEN environment variable.
+// This file is kept only for backward compatibility and is no longer used by the application.

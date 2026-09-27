@@ -1,2 +1,44 @@
 // Deprecated: see Celestial_Bot.js for the updated implementation.
 // Bot token must be set via the TELEGRAM_BOT_TOKEN environment variable.
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate bot syntax
+        run: npm test
+
+      - name: Confirm required runtime env vars are configured
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$ETHERSCAN_API_KEY" ]; then
+            echo "Warning: TELEGRAM_BOT_TOKEN and ETHERSCAN_API_KEY are not set as GitHub secrets."
+            echo "The syntax check still passes, but the bot will not run without these values."
+          else
+            echo "Runtime environment variables detected for CI."
+          fi
